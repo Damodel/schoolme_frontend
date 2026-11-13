@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>After School Lessons</title>
+  <!-- Font Awesome for lesson icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <link rel="stylesheet" href="style.css">
+  <!-- Vue 3 (global build) -->
+  <script src="https://unpkg.com/vue@3.4.38/dist/vue.global.prod.js"></script>
+</head>
+<body>
+  <div id="app">
+    <header>
+      <h1>{{ siteName }}</h1>
+      <!-- TODO: cart button (disabled when cart is empty, toggles pages) -->
+    </header>
+
+    <!-- Lessons page -->
+    <main>
+      <!-- Sort controls: v-model links each <select> to a data property -->
+      <div class="controls">
+        <label>Sort by
+          <select v-model="sortAttribute">
+            <option value="topic">Subject</option>
+            <option value="location">Location</option>
+            <option value="price">Price</option>
+            <option value="space">Spaces</option>
+          </select>
+        </label>
+        <label>Order
+          <select v-model="sortOrder">
+            <option value="asc">Ascending</option>
+            <option value="desc">Descending</option>
+          </select>
+        </label>
+      </div>
+      <!-- TODO: search box -->
+
+      <!-- Loop over the SORTED list (computed), not the raw lessons array -->
+      <div class="lesson" v-for="lesson in sortedLessons" :key="lesson._id">
+        <i :class="lesson.icon"></i>
+        <h2>{{ lesson.topic }}</h2>
+        <p>Location: {{ lesson.location }}</p>
+        <p>Price: £{{ lesson.price }}</p>
+        <p>Spaces: {{ lesson.space }}</p>
+        <!-- TODO: "Add to Cart" button with v-on:click and :disabled -->
+      </div>
+    </main>
+
+    <!-- TODO: cart page with checkout form (name / phone validation) -->
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
