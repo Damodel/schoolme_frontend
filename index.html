@@ -14,13 +14,22 @@
   <div id="app">
     <header>
       <h1>{{ siteName }}</h1>
-      <!-- TODO: cart button (disabled when cart is empty, toggles pages) -->
+      <!-- Disabled until something is in the cart (unless we're already on the cart page) -->
+      <button class="cart-btn" v-on:click="toggleCart" :disabled="cart.length === 0 && !showCart">
+        <i class="fa-solid" :class="showCart ? 'fa-arrow-left' : 'fa-cart-shopping'"></i>
+        {{ showCart ? 'Back to lessons' : 'Cart (' + cartCount + ')' }}
+      </button>
     </header>
 
-    <!-- Lessons page -->
-    <main>
-      <!-- Sort controls: v-model links each <select> to a data property -->
+    <!-- ================= LESSONS PAGE ================= -->
+    <main v-if="!showCart">
       <div class="controls">
+        <!-- Search (challenge): results come from GET /search -->
+        <label>Search
+          <input type="text" v-model="searchText" placeholder="Subject, location, price...">
+        </label>
+
+        <!-- Sort controls: v-model links each <select> to a data property -->
         <label>Sort by
           <select v-model="sortAttribute">
             <option value="topic">Subject</option>
@@ -35,21 +44,70 @@
             <option value="desc">Descending</option>
           </select>
         </label>
-      </div>
-      <!-- TODO: search box -->
 
-      <!-- Loop over the SORTED list (computed), not the raw lessons array -->
-      <div class="lesson" v-for="lesson in sortedLessons" :key="lesson._id">
-        <i :class="lesson.icon"></i>
-        <h2>{{ lesson.topic }}</h2>
-        <p>Location: {{ lesson.location }}</p>
-        <p>Price: £{{ lesson.price }}</p>
-        <p>Spaces: {{ lesson.space }}</p>
-        <!-- TODO: "Add to Cart" button with v-on:click and :disabled -->
+        <!-- Teachers (challenge) -->
+        <label v-if="teachers.length">Teacher
+          <select v-model="selectedTeacherId">
+            <option value="">All teachers</option>
+            <option v-for="teacher in teachers" :key="teacher._id" :value="teacher._id">
+              {{ teacher.firstName }} {{ teacher.lastName }}
+            </option>
+          </select>
+        </label>
+      </div>
+
+      <p v-if="visibleLessons.length === 0">No lessons found.</p>
+
+      <div class="lesson-grid">
+        <div class="lesson" v-for="lesson in visibleLessons" :key="lesson._id">
+          <i :class="lesson.icon"></i>
+          <h2>{{ lesson.topic }}</h2>
+          <p>Location: {{ lesson.location }}</p>
+          <p>Price: £{{ lesson.price }}</p>
+          <p>Spaces: {{ lesson.space }}</p>
+          <!-- Always visible; disabled once there are no spaces left -->
+          <button v-on:click="addToCart(lesson)" :disabled="lesson.space <= 0">
+            Add to Cart
+          </button>
+        </div>
       </div>
     </main>
 
-    <!-- TODO: cart page with checkout form (name / phone validation) -->
+    <!-- ================= CART PAGE ================= -->
+    <main v-else>
+      <h2>Your Cart</h2>
+
+      <p v-if="cart.length === 0 && !orderMessage">Your cart is empty.</p>
+
+      <div class="cart-item" v-for="item in cart" :key="item.lessonId">
+        <span>
+          <strong>{{ item.topic }}</strong> – {{ item.location }} –
+          £{{ item.price }} × {{ item.quantity }}
+        </span>
+        <button v-on:click="removeFromCart(item)">Remove</button>
+      </div>
+
+      <p v-if="cart.length"><strong>Total: £{{ cartTotal }}</strong></p>
+
+      <!-- Checkout (part of the cart page) -->
+      <section class="checkout">
+        <h2>Checkout</h2>
+        <label>Name
+          <input type="text" v-model="name" placeholder="Letters only">
+        </label>
+        <small v-if="name && !isNameValid" class="error">Name must contain letters only.</small>
+
+        <label>Phone
+          <input type="text" v-model="phone" placeholder="Numbers only">
+        </label>
+        <small v-if="phone && !isPhoneValid" class="error">Phone must contain numbers only.</small>
+
+        <!-- Always visible; enabled only when name and phone are valid -->
+        <button v-on:click="checkout" :disabled="!canCheckout">Checkout</button>
+
+        <p v-if="orderMessage" class="message">{{ orderMessage }}</p>
+      </section>
+    </main>
   </div>
 
   <script src="app.js"></script>
