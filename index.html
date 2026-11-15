@@ -3,8 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>After School Lessons</title>
-  <!-- Font Awesome for lesson icons -->
+  <title>Brightpath – After School Lessons</title>
+  <!-- Google Fonts: headings, handwriting, receipt -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;600;800&family=Caveat:wght@600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <!-- Font Awesome for icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
   <link rel="stylesheet" href="style.css">
   <!-- Vue 3 (global build) -->
@@ -12,102 +16,224 @@
 </head>
 <body>
   <div id="app">
-    <header>
-      <h1>{{ siteName }}</h1>
-      <!-- Disabled until something is in the cart (unless we're already on the cart page) -->
-      <button class="cart-btn" v-on:click="toggleCart" :disabled="cart.length === 0 && !showCart">
-        <i class="fa-solid" :class="showCart ? 'fa-arrow-left' : 'fa-cart-shopping'"></i>
-        {{ showCart ? 'Back to lessons' : 'Cart (' + cartCount + ')' }}
-      </button>
-    </header>
+
+    <!-- ================= NAVBAR ================= -->
+    <nav class="navbar">
+      <div class="container nav-inner">
+        <a class="logo" href="#" v-on:click.prevent="showCart = false">
+          <span class="logo-mark"><i class="fa-solid fa-pencil"></i></span>
+          {{ siteName }}
+        </a>
+
+        <!-- Search (challenge): results come from GET /search -->
+        <div class="nav-search" v-if="!showCart">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <input type="text" v-model="searchText" placeholder="Search anything... maths, Hendon, 90">
+        </div>
+
+        <!-- Disabled until something is in the cart (unless we're already on the cart page) -->
+        <button class="btn btn-cart" v-on:click="toggleCart" :disabled="cart.length === 0 && !showCart">
+          <i class="fa-solid" :class="showCart ? 'fa-arrow-left' : 'fa-basket-shopping'"></i>
+          <span>{{ showCart ? 'Back to lessons' : 'My basket' }}</span>
+          <span class="badge" v-if="!showCart && cartCount > 0">{{ cartCount }}</span>
+        </button>
+      </div>
+    </nav>
 
     <!-- ================= LESSONS PAGE ================= -->
-    <main v-if="!showCart">
-      <div class="controls">
-        <!-- Search (challenge): results come from GET /search -->
-        <label>Search
-          <input type="text" v-model="searchText" placeholder="Subject, location, price...">
-        </label>
+    <div v-if="!showCart">
 
-        <!-- Sort controls: v-model links each <select> to a data property -->
-        <label>Sort by
-          <select v-model="sortAttribute">
-            <option value="topic">Subject</option>
-            <option value="location">Location</option>
-            <option value="price">Price</option>
-            <option value="space">Spaces</option>
-          </select>
-        </label>
-        <label>Order
-          <select v-model="sortOrder">
-            <option value="asc">Ascending</option>
-            <option value="desc">Descending</option>
-          </select>
-        </label>
+      <!-- Hero -->
+      <header class="hero container">
+        <div class="hero-text">
+          <p class="scribble">psst... school's out! <i class="fa-solid fa-arrow-turn-down"></i></p>
+          <h1>
+            After school,<br>
+            but make it <span class="marker">fun.</span>
+          </h1>
+          <p class="lead">
+            Pick a class, grab a space, and try something new this term.
+            Maths, music, coding, sport — taught by brilliant local teachers.
+          </p>
+        </div>
 
-        <!-- Teachers (challenge) -->
-        <label v-if="teachers.length">Teacher
-          <select v-model="selectedTeacherId">
-            <option value="">All teachers</option>
-            <option v-for="teacher in teachers" :key="teacher._id" :value="teacher._id">
-              {{ teacher.firstName }} {{ teacher.lastName }}
-            </option>
-          </select>
-        </label>
-      </div>
+        <div class="hero-stickers">
+          <div class="sticker s-yellow"><strong>{{ lessons.length }}</strong>lessons</div>
+          <div class="sticker s-pink"><strong>{{ teachers.length }}</strong>teachers</div>
+          <div class="sticker s-blue"><strong>5</strong>spaces / class</div>
+          <div class="sticker s-green"><i class="fa-solid fa-star"></i>new this term</div>
+        </div>
+      </header>
 
-      <p v-if="visibleLessons.length === 0">No lessons found.</p>
-
-      <div class="lesson-grid">
-        <div class="lesson" v-for="lesson in visibleLessons" :key="lesson._id">
-          <i :class="lesson.icon"></i>
-          <h2>{{ lesson.topic }}</h2>
-          <p>Location: {{ lesson.location }}</p>
-          <p>Price: £{{ lesson.price }}</p>
-          <p>Spaces: {{ lesson.space }}</p>
-          <!-- Always visible; disabled once there are no spaces left -->
-          <button v-on:click="addToCart(lesson)" :disabled="lesson.space <= 0">
-            Add to Cart
-          </button>
+      <!-- Scrolling subject strip -->
+      <div class="marquee" aria-hidden="true">
+        <div class="marquee-track">
+          <span>Maths <i class="fa-solid fa-asterisk"></i> Music <i class="fa-solid fa-asterisk"></i> Coding <i class="fa-solid fa-asterisk"></i> Football <i class="fa-solid fa-asterisk"></i> Art <i class="fa-solid fa-asterisk"></i> Science <i class="fa-solid fa-asterisk"></i> Drama <i class="fa-solid fa-asterisk"></i> English <i class="fa-solid fa-asterisk"></i></span>
+          <span>Maths <i class="fa-solid fa-asterisk"></i> Music <i class="fa-solid fa-asterisk"></i> Coding <i class="fa-solid fa-asterisk"></i> Football <i class="fa-solid fa-asterisk"></i> Art <i class="fa-solid fa-asterisk"></i> Science <i class="fa-solid fa-asterisk"></i> Drama <i class="fa-solid fa-asterisk"></i> English <i class="fa-solid fa-asterisk"></i></span>
         </div>
       </div>
-    </main>
+
+      <main class="container">
+        <!-- Toolbar: sort + teacher filter -->
+        <div class="toolbar">
+          <h2 class="section-title">
+            {{ searchText ? 'Results for "' + searchText + '"' : 'This term\'s timetable' }}
+            <span class="count">{{ visibleLessons.length }}</span>
+          </h2>
+
+          <div class="filters">
+            <label class="field">
+              <span>Sort by</span>
+              <select v-model="sortAttribute">
+                <option value="topic">Subject</option>
+                <option value="location">Location</option>
+                <option value="price">Price</option>
+                <option value="space">Spaces</option>
+              </select>
+            </label>
+            <label class="field">
+              <span>Order</span>
+              <select v-model="sortOrder">
+                <option value="asc">Ascending</option>
+                <option value="desc">Descending</option>
+              </select>
+            </label>
+            <!-- Teachers (challenge) -->
+            <label class="field" v-if="teachers.length">
+              <span>Teacher</span>
+              <select v-model="selectedTeacherId">
+                <option value="">All teachers</option>
+                <option v-for="teacher in teachers" :key="teacher._id" :value="teacher._id">
+                  {{ teacher.firstName }} {{ teacher.lastName }}
+                </option>
+              </select>
+            </label>
+          </div>
+        </div>
+
+        <div class="empty" v-if="visibleLessons.length === 0">
+          <p class="scribble">nothing here... try another search?</p>
+        </div>
+
+        <!-- Lesson tickets (v-for) -->
+        <div class="lesson-grid">
+          <article class="ticket" v-for="lesson in visibleLessons" :key="lesson._id"
+                   :class="{ 'is-sold-out': lesson.space === 0 }">
+
+            <!-- Top half of the ticket -->
+            <div class="ticket-top" :class="cardTheme(lesson)">
+              <span class="ticket-label">Admit one</span>
+              <i class="ticket-icon" :class="lesson.icon"></i>
+              <h3>{{ lesson.topic }}</h3>
+            </div>
+
+            <!-- Perforated tear line -->
+            <div class="perforation"></div>
+
+            <!-- Bottom half of the ticket -->
+            <div class="ticket-bottom">
+              <p class="meta"><i class="fa-solid fa-location-dot"></i> {{ lesson.location }}</p>
+
+              <!-- One dot per space left -->
+              <div class="seats">
+                <span class="seat" v-for="n in Math.min(lesson.space, 10)" :key="n"></span>
+                <span class="seats-text">{{ lesson.space }} {{ lesson.space === 1 ? 'space' : 'spaces' }} left</span>
+              </div>
+
+              <div class="ticket-footer">
+                <span class="price">£{{ lesson.price }}</span>
+                <!-- Always visible; disabled once there are no spaces left -->
+                <button class="btn btn-add" v-on:click="addToCart(lesson)" :disabled="lesson.space <= 0">
+                  <i class="fa-solid fa-plus"></i> Add to Cart
+                </button>
+              </div>
+            </div>
+
+            <!-- Rubber stamp when sold out -->
+            <div class="stamp" v-if="lesson.space === 0">Sold out!</div>
+          </article>
+        </div>
+      </main>
+    </div>
 
     <!-- ================= CART PAGE ================= -->
-    <main v-else>
-      <h2>Your Cart</h2>
+    <main class="container cart-page" v-else>
+      <div class="cart-layout">
 
-      <p v-if="cart.length === 0 && !orderMessage">Your cart is empty.</p>
+        <!-- Left: intro + checkout form -->
+        <section class="checkout">
+          <p class="scribble">almost there!</p>
+          <h1>Your basket</h1>
 
-      <div class="cart-item" v-for="item in cart" :key="item.lessonId">
-        <span>
-          <strong>{{ item.topic }}</strong> – {{ item.location }} –
-          £{{ item.price }} × {{ item.quantity }}
-        </span>
-        <button v-on:click="removeFromCart(item)">Remove</button>
+          <div class="empty" v-if="cart.length === 0 && !orderMessage">
+            <p>Your basket is empty — go grab a lesson!</p>
+          </div>
+
+          <!-- Checkout (part of the cart page) -->
+          <div class="form-card">
+            <h2><i class="fa-solid fa-pen-nib"></i> Your details</h2>
+
+            <label class="field">
+              <span>Full name</span>
+              <input type="text" v-model="name" placeholder="Letters only"
+                     :class="{ invalid: name && !isNameValid, valid: isNameValid }">
+            </label>
+            <small v-if="name && !isNameValid" class="error">Name must contain letters only.</small>
+
+            <label class="field">
+              <span>Phone number</span>
+              <input type="text" v-model="phone" placeholder="Numbers only"
+                     :class="{ invalid: phone && !isPhoneValid, valid: isPhoneValid }">
+            </label>
+            <small v-if="phone && !isPhoneValid" class="error">Phone must contain numbers only.</small>
+
+            <!-- Always visible; enabled only when name and phone are valid -->
+            <button class="btn btn-checkout" v-on:click="checkout" :disabled="!canCheckout">
+              Checkout <i class="fa-solid fa-arrow-right"></i>
+            </button>
+          </div>
+
+          <div v-if="orderMessage" class="message">
+            <i class="fa-solid fa-champagne-glasses"></i> {{ orderMessage }}
+          </div>
+        </section>
+
+        <!-- Right: receipt with the cart items -->
+        <aside class="receipt">
+          <div class="receipt-head">
+            <strong>{{ siteName.toUpperCase() }}</strong>
+            <span>AFTER SCHOOL CLUB</span>
+            <span>-------------------------</span>
+          </div>
+
+          <p class="receipt-empty" v-if="cart.length === 0">** NO ITEMS **</p>
+
+          <div class="receipt-item" v-for="item in cart" :key="item.lessonId">
+            <div class="receipt-line">
+              <span>{{ item.quantity }} x {{ item.topic.toUpperCase() }}</span>
+              <span>£{{ item.price * item.quantity }}</span>
+            </div>
+            <div class="receipt-sub">
+              <span>@ {{ item.location }} · £{{ item.price }} each</span>
+              <button class="btn-remove" v-on:click="removeFromCart(item)">[remove]</button>
+            </div>
+          </div>
+
+          <div class="receipt-total">
+            <span>TOTAL</span>
+            <span>£{{ cartTotal }}</span>
+          </div>
+          <p class="receipt-foot">SPACES: {{ cartCount }}<br>THANK YOU! SEE YOU IN CLASS</p>
+        </aside>
       </div>
-
-      <p v-if="cart.length"><strong>Total: £{{ cartTotal }}</strong></p>
-
-      <!-- Checkout (part of the cart page) -->
-      <section class="checkout">
-        <h2>Checkout</h2>
-        <label>Name
-          <input type="text" v-model="name" placeholder="Letters only">
-        </label>
-        <small v-if="name && !isNameValid" class="error">Name must contain letters only.</small>
-
-        <label>Phone
-          <input type="text" v-model="phone" placeholder="Numbers only">
-        </label>
-        <small v-if="phone && !isPhoneValid" class="error">Phone must contain numbers only.</small>
-
-        <!-- Always visible; enabled only when name and phone are valid -->
-        <button v-on:click="checkout" :disabled="!canCheckout">Checkout</button>
-
-        <p v-if="orderMessage" class="message">{{ orderMessage }}</p>
-      </section>
     </main>
+
+    <footer class="footer">
+      <div class="container">
+        <span class="logo small"><span class="logo-mark"><i class="fa-solid fa-pencil"></i></span> {{ siteName }}</span>
+        <span class="scribble">made with Vue + lots of coffee</span>
+      </div>
+    </footer>
   </div>
 
   <script src="app.js"></script>

@@ -6,7 +6,7 @@ const { createApp } = Vue;
 createApp({
   data() {
     return {
-      siteName: 'After School Lessons',
+      siteName: 'Brightpath',
       lessons: [],
       sortAttribute: 'topic', // which field to sort on
       sortOrder: 'asc',       // 'asc' or 'desc'
@@ -61,6 +61,14 @@ createApp({
         .catch((err) => console.error('Error loading teachers:', err));
     },
 
+    // Picks one of 6 colour themes (theme-0 ... theme-5 in style.css)
+    // from the subject name, so the same subject always gets the same colour.
+    cardTheme(lesson) {
+      let sum = 0;
+      for (const char of lesson.topic) sum += char.charCodeAt(0);
+      return 'theme-' + (sum % 6);
+    },
+
     // ---------- Cart ----------
 
     findCartItem(lessonId) {
@@ -82,6 +90,7 @@ createApp({
           topic: lesson.topic,
           location: lesson.location,
           price: lesson.price,
+          icon: lesson.icon,
           quantity: 1,
         });
       }
